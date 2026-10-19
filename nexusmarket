@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS MARKET - Universal Gaming Escrow Exchange</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#0a0d14',
+                            card: '#121624',
+                            border: '#1e2638',
+                            accent: '#3b82f6',
+                            gold: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0d14; color: #f3f4f6; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0e1117; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2a3447; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0a0d14] text-slate-100 antialiased">
+
+    <!-- HEADER NAVBAR -->
+    <header class="bg-[#121624]/90 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('marketplace')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-200 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-amber-500/20">N</div>
+                <div>
+                    <h1 class="font-extrabold text-lg text-white tracking-wide leading-none">NEXUS<span class="text-amber-400">MARKET</span></h1>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest font-bold block mt-0.5">Escrow Gaming Exchange</span>
+                </div>
+            </div>
+
+            <div class="flex-1 max-w-md mx-2">
+                <div class="relative">
+                    <input type="text" id="searchInput" onkeyup="filterOffers()" placeholder="Search Blox Fruits, V-Bucks, Genshin, Gold..." class="w-full bg-[#0a0d14] border border-brand-border rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-gray-500"></i>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2.5 flex-wrap">
+                <div class="bg-[#0a0d14] border border-brand-border rounded-lg p-1 flex items-center gap-1 text-xs font-bold">
+                    <button id="curr-USD" onclick="setCurrency('USD')" class="px-2 py-1 rounded bg-amber-400 text-black transition">$ USD</button>
+                    <button id="curr-INR" onclick="setCurrency('INR')" class="px-2 py-1 rounded text-gray-400 hover:text-white transition">₹ INR</button>
+                </div>
+                <button onclick="openModal('createListingModal')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg transition flex items-center gap-1 shadow-md">
+                    <i class="fa-solid fa-plus-circle"></i> Sell Item
+                </button>
+                <div class="hidden md:flex bg-[#1a202c] border border-brand-border rounded-lg px-2.5 py-1 items-center gap-2">
+                    <div class="text-right">
+                        <span class="text-[9px] text-gray-400 block uppercase font-bold">Buyer Balance</span>
+                        <span id="headerWalletBalance" class="text-xs font-extrabold text-green-400">$1,250.75</span>
+                    </div>
+                    <button onclick="openModal('depositModal')" class="bg-green-600 hover:bg-green-700 text-white text-[10px] px-2 py-1 rounded font-bold">+</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TAB NAVIGATION BAR -->
+    <nav class="bg-[#151921] border-b border-brand-border px-4 py-2 text-xs font-bold text-gray-300 overflow-x-auto custom-scrollbar">
+        <div class="max-w-7xl mx-auto flex items-center gap-6 min-w-max">
+            <button onclick="switchTab('marketplace')" id="nav-marketplace" class="tab-btn text-amber-400 border-b-2 border-amber-400 pb-1 flex items-center gap-2"><i class="fa-solid fa-store"></i> Marketplace Offers</button>
+            <button onclick="switchTab('transactions')" id="nav-transactions" class="tab-btn hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-receipt text-green-400"></i> Transactions & History</button>
+            <button onclick="switchTab('seller')" id="nav-seller" class="tab-btn hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-wallet text-amber-400"></i> Seller Dashboard</button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-1 space-y-6">
+        <!-- TAB 1: MARKETPLACE -->
+        <section id="tab-marketplace" class="space-y-6">
+            <div class="space-y-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-fire text-yellow-500"></i> Active Marketplace Listings</h3>
+                <div id="offersContainer" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- TAB 2: TRANSACTIONS -->
+        <section id="tab-transactions" class="space-y-6 hidden">
+            <div class="bg-brand-card border border-brand-border rounded-xl p-5 space-y-5 shadow-xl">
+                <div class="flex justify-between items-center border-b border-brand-border pb-4">
+                    <h3 class="text-base font-bold text-white"><i class="fa-solid fa-receipt text-green-400"></i> Wallet Transactions Ledger</h3>
+                    <div class="flex gap-2">
+                        <button onclick="openModal('depositModal')" class="bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-3 py-2 rounded-lg">+ Deposit</button>
+                        <button onclick="openModal('payoutModal')" class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xs px-3 py-2 rounded-lg">Withdraw</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-[#0a0d14] text-gray-400 border-b border-brand-border">
+                            <tr><th class="p-3">Tx ID</th><th class="p-3">Type</th><th class="p-3">Amount</th><th class="p-3">Method/Details</th><th class="p-3">Status</th></tr>
+                        </thead>
+                        <tbody id="transactionTableBody" class="divide-y divide-brand-border text-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: SELLER DASHBOARD -->
+        <section id="tab-seller" class="space-y-6 hidden">
+            <div class="bg-brand-card border border-brand-border rounded-xl p-5 space-y-4">
+                <h3 class="font-bold text-base text-white">Seller Earnings & Crypto/UPI Settings</h3>
+                <div class="bg-[#11151c] border border-brand-border p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-gray-400 block uppercase font-bold">Seller Balance</span>
+                        <div id="sellerBalanceDisplay" class="text-2xl font-black text-white">$530.00</div>
+                    </div>
+                    <button onclick="openModal('payoutModal')" class="bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold text-xs px-4 py-2.5 rounded-lg">Request Payout</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL: DEPOSIT -->
+    <div id="depositModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-brand-card border border-brand-border rounded-xl max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeModal('depositModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-base font-bold text-white">Deposit Funds</h3>
+            <div class="space-y-1">
+                <label class="text-xs text-gray-300 font-semibold">Amount (<span class="curr-unit">USD</span>)</label>
+                <input type="number" value="50" id="depositInput" class="w-full bg-[#11151c] border border-brand-border rounded-lg py-2 px-3 text-sm text-white font-bold">
+            </div>
+            <div class="space-y-1">
+                <label class="text-xs text-gray-300 font-semibold">Payment Method / Address</label>
+                <select id="depositMethodSelect" onchange="updateDepositDetails()" class="w-full bg-[#11151c] border border-brand-border rounded-lg py-2 px-3 text-xs text-white">
+                    <option value="upi">UPI: godgachaxt-1@okaxis[cite: 1]</option>
+                    <option value="ltc">Litecoin (LTC): ltc1q83dtfpuzkveqqgdlqf27dej946yts0jey8s2rm[cite: 1]</option>
+                    <option value="usdt">USDT (BEP-20): 0xBA9BDFeFB4B8AEA8D29Ac36292ae82D970dA5B0e[cite: 1]</option>
+                </select>
+            </div>
+            <div id="depositInfoBox" class="bg-[#0a0d14] border border-brand-border p-3 rounded-lg text-xs text-gray-300 font-mono-code break-all">
+                Send to UPI ID: <strong>godgachaxt-1@okaxis</strong>[cite: 1]
+            </div>
+            <button onclick="confirmDeposit()" class="w-full bg-green-600 hover:bg-green-700 text-white font-extrabold text-xs py-3 rounded-lg">Confirm Deposit</button>
+        </div>
+    </div>
+
+    <!-- MODAL: PAYOUT -->
+    <div id="payoutModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-brand-card border border-brand-border rounded-xl max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeModal('payoutModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-base font-bold text-white">Withdraw Earnings</h3>
+            <div class="space-y-1">
+                <label class="text-xs text-gray-300 font-semibold">Amount</label>
+                <input type="number" value="50" id="payoutInput" class="w-full bg-[#11151c] border border-brand-border rounded-lg py-2 px-3 text-sm text-white font-bold">
+            </div>
+            <div class="space-y-1">
+                <label class="text-xs text-gray-300 font-semibold">Select Destination</label>
+                <select id="payoutDest" class="w-full bg-[#11151c] border border-brand-border rounded-lg py-2 px-3 text-xs text-white">
+                    <option>UPI: godgachaxt-1@okaxis[cite: 1]</option>
+                    <option>LTC: ltc1q83dtfpuzkveqqgdlqf27dej946yts0jey8s2rm[cite: 1]</option>
+                    <option>USDT BEP20: 0xBA9BDFeFB4B8AEA8D29Ac36292ae82D970dA5B0e[cite: 1]</option>
+                </select>
+            </div>
+            <button onclick="submitPayout()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold text-xs py-3 rounded-lg">Submit Payout</button>
+        </div>
+    </div>
+
+    <script>
+        let currentCurrency = 'USD';
+        const USD_TO_INR = 83.50;
+        let buyerBalanceUSD = 1250.75;
+        let sellerBalanceUSD = 530.00;
+
+        let transactionHistory = [
+            { id: "TX-9910", type: "Deposit", amountUSD: 500.00, method: "LTC (ltc1q...)[cite: 1]", status: "Completed" },
+            { id: "TX-9890", type: "Payout", amountUSD: 73.50, method: "UPI (godgachaxt-1@okaxis)[cite: 1]", status: "Completed" }
+        ];
+
+        let offersData = [
+            { id: 0, game: "Blox Fruits", title: "Kitsune Fruit", priceUSD: 15.00, seller: "ProGamer99" },
+            { id: 1, game: "Fortnite", title: "13,500 V-Bucks", priceUSD: 32.00, seller: "VBucksKing" }
+        ];
+
+        window.onload = function() { renderOffers(); renderTransactions(); };
+
+        function setCurrency(curr) {
+            currentCurrency = curr;
+            document.querySelectorAll('.curr-unit').forEach(el => el.innerText = curr);
+            document.getElementById('curr-USD').className = curr === 'USD' ? 'px-2 py-1 rounded bg-amber-400 text-black' : 'px-2 py-1 rounded text-gray-400';
+            document.getElementById('curr-INR').className = curr === 'INR' ? 'px-2 py-1 rounded bg-amber-400 text-black' : 'px-2 py-1 rounded text-gray-400';
+            renderOffers(); renderTransactions();
+        }
+
+        function formatMoney(val) {
+            return currentCurrency === 'INR' ? '₹' + (val * USD_TO_INR).toFixed(2) : '$' + val.toFixed(2) + ' USD';
+        }
+
+        function renderOffers() {
+            const container = document.getElementById('offersContainer');
+            container.innerHTML = '';
+            offersData.forEach(o => {
+                container.innerHTML += `<div class="bg-brand-card border border-brand-border rounded-xl p-4 flex justify-between items-center text-xs">
+                    <div><span class="font-bold text-white text-sm">${o.title}</span><div class="text-gray-400">Seller: ${o.seller}</div></div>
+                    <div class="font-black text-white text-base">${formatMoney(o.priceUSD)}</div></div>`;
+            });
+        }
+
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionTableBody');
+            tbody.innerHTML = '';
+            transactionHistory.forEach(tx => {
+                tbody.innerHTML += `<tr><td class="p-3 text-amber-400 font-bold">${tx.id}</td><td class="p-3">${tx.type}</td><td class="p-3">${formatMoney(tx.amountUSD)}</td><td class="p-3 text-gray-300">${tx.method}</td><td class="p-3 text-green-400">${tx.status}</td></tr>`;
+            });
+            document.getElementById('headerWalletBalance').innerText = formatMoney(buyerBalanceUSD);
+            document.getElementById('sellerBalanceDisplay').innerText = formatMoney(sellerBalanceUSD);
+        }
+
+        function updateDepositDetails() {
+            const method = document.getElementById('depositMethodSelect').value;
+            const box = document.getElementById('depositInfoBox');
+            if(method === 'upi') box.innerHTML = `Send payment via GPay/PhonePe to UPI ID: <strong>godgachaxt-1@okaxis</strong>[cite: 1]`;
+            else if(method === 'ltc') box.innerHTML = `Send LTC to Address: <br><strong>ltc1q83dtfpuzkveqqgdlqf27dej946yts0jey8s2rm</strong>[cite: 1]`;
+            else if(method === 'usdt') box.innerHTML = `Send USDT (BEP-20) to Address: <br><strong>0xBA9BDFeFB4B8AEA8D29Ac36292ae82D970dA5B0e</strong>[cite: 1]`;
+        }
+
+        function confirmDeposit() {
+            const amt = parseFloat(document.getElementById('depositInput').value) || 0;
+            const usdVal = currentCurrency === 'INR' ? (amt / USD_TO_INR) : amt;
+            buyerBalanceUSD += usdVal;
+            transactionHistory.unshift({ id: 'TX-'+Math.floor(1000+Math.random()*9000), type: 'Deposit', amountUSD: usdVal, method: 'Crypto/UPI Deposit', status: 'Completed' });
+            renderTransactions(); closeModal('depositModal');
+            alert('Deposit Recorded Successfully!');
+        }
+
+        function submitPayout() {
+            const amt = parseFloat(document.getElementById('payoutInput').value) || 0;
+            const usdVal = currentCurrency === 'INR' ? (amt / USD_TO_INR) : amt;
+            if(sellerBalanceUSD < usdVal) { alert('Insufficient Balance'); return; }
+            sellerBalanceUSD -= usdVal;
+            transactionHistory.unshift({ id: 'TX-'+Math.floor(1000+Math.random()*9000), type: 'Payout', amountUSD: usdVal, method: document.getElementById('payoutDest').value, status: 'Processing' });
+            renderTransactions(); closeModal('payoutModal');
+            alert('Payout Request Submitted Successfully!');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function switchTab(tab) {
+            ['marketplace', 'transactions', 'seller'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+            document.getElementById('tab-'+tab).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
